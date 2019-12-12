@@ -14,26 +14,43 @@ def scrapeIndeed():
     page = requests.get("https://au.indeed.com/jobs?q="+what+"&l="+where+"&limit="+str(perpage))
     soup = BeautifulSoup(page.text, 'html.parser')
 
-    #finds the job listings on the page
-    listings = soup.findAll(True, {'class':['jobsearch-SerpJobCard', 'unifiedRow', 'row', 'result', 'clickcard']})
+    # finds a post on the job listing page
+    listings = soup.findAll('div',attrs={'class':['jobsearch-SerpJobCard', 'unifiedRow', 'row', 'result', 'clickcard']})
 
-    #places jobs are listed as
-    places = soup.findAll(True, {'class':['location', 'accessible-contrast-color-location']})
+    
+    for post in listings:
+        # takes the link to the single page post
+        link = post.findAll('a', attrs={'class':'jobtitle turnstileLink'})
+        nextPage = "https://www.indeed.com.au"+str(link[0]['href'])
+        # opens the single page post
+        newPage = requests.get(nextPage)
+        newSoup = BeautifulSoup(newPage.text, 'html.parser')
 
-    #companies posts are listed under
-    companys = soup.findAll(True, {'class':['company']})
+        # takes the title, the poster, and any meta details included such as location, contract, pay
+        title = newSoup.find(True, {'class':['icl-u-xs-mb--xs', 'icl-u-xs-mt--none', 'jobsearch-JobInfoHeader-title']})
+        print(title.text)
+        lister = newSoup.find(True, {'class':['icl-u-lg-mr--sm', 'icl-u-xs-mr--xs']})
+        print(lister.text)
+        meta = newSoup.findAll(True, {'class':['jobsearch-JobMetadataHeader-iconLabel']})
+        for m in meta:
+            print(m.text)
+        # prints the link too
+        print(nextPage+'\n')
 
-    comp=""
-    for i in range(len(listings)):
-        lblock = listings[i].find_all("div", {"class": "title"})
-        title=(lblock[0].find('a').text).strip()
-        place=(places[i].text).strip()
-        try:
-            comp=(companys[i].text).strip()
-        except:
-            comp = soup.findAll('class')['company']
-        print(str(i+1)+": "+title+"\n"+place+"\n"+comp+"\n")
 
+    """ # test area (for using a single page to find details)
+    page = requests.get("https://www.indeed.com.au/company/AiGroup/jobs/Graduate-Developer-3d4831a1a59ea3e0?fccid=db48a678d96be103&vjs=3")
+    soup = BeautifulSoup(page.text, 'html.parser')
+    #print(soup.prettify())
+
+    title = soup.find(True, {'class':['icl-u-xs-mb--xs', 'icl-u-xs-mt--none', 'jobsearch-JobInfoHeader-title']})
+    print(title.text)
+    lister = soup.find(True, {'class':['icl-u-lg-mr--sm', 'icl-u-xs-mr--xs']})
+    print(lister.text)
+    meta = soup.findAll(True, {'class':['jobsearch-JobMetadataHeader-iconLabel']})
+    for m in meta:
+        print(m.text)
+    """
 
     # TODO 
     # figure out issue with company name not working if it's a link
