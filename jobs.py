@@ -4,10 +4,10 @@ from bs4 import BeautifulSoup
 def scrapeIndeed():
     #collect what jobs the user is looking for and where
 
-    #what = input("What job are you looking for? ")
-    what = "software developer" # default for developing
-    #where = input("Where are you looking for the job? ")
-    where = "brisbane" # default for developing
+    what = input("What job are you looking for? ")
+    #what = "software developer" # default for developing
+    where = input("Where are you looking for the job? ")
+    #where = "brisbane" # default for developing
 
     perpage=100
 
@@ -17,7 +17,6 @@ def scrapeIndeed():
     # finds a post on the job listing page
     listings = soup.findAll('div',attrs={'class':['jobsearch-SerpJobCard', 'unifiedRow', 'row', 'result', 'clickcard']})
 
-    
     for post in listings:
         # takes the link to the single page post
         link = post.findAll('a', attrs={'class':'jobtitle turnstileLink'})
@@ -26,17 +25,22 @@ def scrapeIndeed():
         newPage = requests.get(nextPage)
         newSoup = BeautifulSoup(newPage.text, 'html.parser')
 
-        # takes the title, the poster, and any meta details included such as location, contract, pay
-        title = newSoup.find(True, {'class':['icl-u-xs-mb--xs', 'icl-u-xs-mt--none', 'jobsearch-JobInfoHeader-title']})
-        print(title.text)
-        lister = newSoup.find(True, {'class':['icl-u-lg-mr--sm', 'icl-u-xs-mr--xs']})
-        print(lister.text)
-        meta = newSoup.findAll(True, {'class':['jobsearch-JobMetadataHeader-iconLabel']})
-        for m in meta:
-            print(m.text)
-        # prints the link too
-        print(nextPage+'\n')
-
+        try:
+            # takes the title, the poster, and any meta details included such as location, contract, pay
+            title = newSoup.find(True, {'class':['icl-u-xs-mb--xs', 'icl-u-xs-mt--none', 'jobsearch-JobInfoHeader-title']})
+            print(title.text)
+            lister = newSoup.find(True, {'class':['icl-u-lg-mr--sm', 'icl-u-xs-mr--xs']})
+            print(lister.text)
+            meta = newSoup.findAll(True, {'class':['jobsearch-JobMetadataHeader-iconLabel']})
+            for m in meta:
+                print(m.text)
+            # prints the link too
+            print(nextPage+'\n')
+        except: # using this except to catch things like 
+                # "Help Wanted" pages which follow a different structure
+                # and are not job listings
+            print("Could not fetch page\n")
+       
 
     """ # test area (for using a single page to find details)
     page = requests.get("https://www.indeed.com.au/company/AiGroup/jobs/Graduate-Developer-3d4831a1a59ea3e0?fccid=db48a678d96be103&vjs=3")
